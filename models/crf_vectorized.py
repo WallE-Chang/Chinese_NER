@@ -131,7 +131,7 @@ class CRF(nn.Module):
         """
         pdb.set_trace()
         batch_size, seq_length = tags.shape
-        scores = torch.zeros(batch_size)
+        scores = torch.zeros(batch_size).to(emissions.device)
 
         # save first and last tags to be used later
         first_tags = tags[:, 0]
