@@ -81,8 +81,6 @@ class CRF(nn.Module):
         """
 
         # fix tensors order by setting batch as the first dimension
-        pdb.set_trace()
-        
         if not self.batch_first:
             emissions = emissions.transpose(0, 1)
             tags = tags.transpose(0, 1)
@@ -131,6 +129,7 @@ class CRF(nn.Module):
             torch.Tensor: Scores for each batch.
                 Shape of (batch_size,)
         """
+        pdb.set_trace()
         batch_size, seq_length = tags.shape
         scores = torch.zeros(batch_size)
 
