@@ -144,6 +144,11 @@ class CRF(nn.Module):
         # emissions[:, 0, [tag_1, tag_2, ..., tag_nblabels]]
         e_scores = emissions[:, 0].gather(1, first_tags.unsqueeze(1)).squeeze()
 
+        print(scores.type())
+        print(e_scores.type())
+        print(t_scores.type())
+       
+
         # the scores for a word is just the sum of both scores
         scores += e_scores + t_scores
 
