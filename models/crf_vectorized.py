@@ -81,12 +81,15 @@ class CRF(nn.Module):
         """
 
         # fix tensors order by setting batch as the first dimension
+        pdb.set_trace()
+        
         if not self.batch_first:
             emissions = emissions.transpose(0, 1)
             tags = tags.transpose(0, 1)
 
         if mask is None:
             mask = torch.ones(emissions.shape[:2], dtype=torch.float)
+
 
         scores = self._compute_scores(emissions, tags, mask=mask)
         partition = self._compute_log_partition(emissions, mask=mask)
@@ -144,38 +147,36 @@ class CRF(nn.Module):
         # for the first tags (which is a list of ids):
         # emissions[:, 0, [tag_1, tag_2, ..., tag_nblabels]]
         e_scores = emissions[:, 0].gather(1, first_tags.unsqueeze(1)).squeeze()
-        pdb.set_trace()
-        return 1
+        
 
+        # the scores for a word is just the sum of both scores
+        scores += e_scores + t_scores
 
-        # # the scores for a word is just the sum of both scores
-        # scores += e_scores + t_scores
+        # now lets do this for each remaining word
+        for i in range(1, seq_length):
 
-        # # now lets do this for each remaining word
-        # for i in range(1, seq_length):
+            # we could: iterate over batches, check if we reached a mask symbol
+            # and stop the iteration, but vecotrizing is faster due to gpu,
+            # so instead we perform an element-wise multiplication
+            is_valid = mask[:, i]
 
-        #     # we could: iterate over batches, check if we reached a mask symbol
-        #     # and stop the iteration, but vecotrizing is faster due to gpu,
-        #     # so instead we perform an element-wise multiplication
-        #     is_valid = mask[:, i]
+            previous_tags = tags[:, i - 1]
+            current_tags = tags[:, i]
 
-        #     previous_tags = tags[:, i - 1]
-        #     current_tags = tags[:, i]
+            # calculate emission and transition scores as we did before
+            e_scores = emissions[:, i].gather(1, current_tags.unsqueeze(1)).squeeze()
+            t_scores = self.transitions[previous_tags, current_tags]
 
-        #     # calculate emission and transition scores as we did before
-        #     e_scores = emissions[:, i].gather(1, current_tags.unsqueeze(1)).squeeze()
-        #     t_scores = self.transitions[previous_tags, current_tags]
+            # apply the mask
+            e_scores = e_scores * is_valid
+            t_scores = t_scores * is_valid
 
-        #     # apply the mask
-        #     e_scores = e_scores * is_valid
-        #     t_scores = t_scores * is_valid
+            scores += e_scores + t_scores
 
-        #     scores += e_scores + t_scores
+        # add the transition from the end tag to the EOS tag for each batch
+        scores += self.transitions[last_tags, self.EOS_TAG_ID]
 
-        # # add the transition from the end tag to the EOS tag for each batch
-        # scores += self.transitions[last_tags, self.EOS_TAG_ID]
-
-        # return scores
+        return scores
 
     def _compute_log_partition(self, emissions, mask):
         """Compute the partition function in log-space using the forward-algorithm.
