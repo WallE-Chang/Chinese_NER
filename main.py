@@ -2,7 +2,7 @@
 # @Author: wanli
 # @Date:   2019-08-08 17:32:03
 # @Last Modified by:   changwanli
-# @Last Modified time: 2019-08-09 14:45:14
+# @Last Modified time: 2019-08-09 15:02:23
 
 import numpy as np
 import torch
@@ -60,7 +60,7 @@ for epoch in range(300):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        total_loss += loss.detach().numpy()
+        total_loss += loss.cpu().detach().numpy()
         iteration_num += 1
     print('train loss :%.2f' % (total_loss / iteration_num))
 
@@ -79,7 +79,7 @@ for epoch in range(300):
                 [[dp.tag_to_index[tag] for tag in sent] for sent in tags])
             path_flatten = np.concatenate(path)
             total_acc += np.mean(labels_flatten == path_flatten)
-            total_loss += loss.detach().numpy()
+            total_loss += loss.cpu().detach().numpy()
             iteration_num += 1
 
     print('test loss :%.2f' % (total_loss / iteration_num))
