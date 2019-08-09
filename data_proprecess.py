@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: wanli
 # @Date:   2019-07-25 09:21:59
-# @Last Modified by:   wanli
-# @Last Modified time: 2019-08-08 17:31:19
+# @Last Modified by:   changwanli
+# @Last Modified time: 2019-08-09 14:14:58
 
 import torch
 
@@ -64,7 +64,7 @@ class data_preprocess(object):
                 if not self.use_pretrained_word_to_index:
                     if word.isdigit():
                         word = '<num>'
-                    elif ('\u0041' <= word <='\u005a') or ('\u0061' <= word <='\u007a'):
+                    elif ('\u0041' <= word <= '\u005a') or ('\u0061' <= word <= '\u007a'):
                         word = '<eng>'
                     if word not in word_to_index:
                         word_to_index[word] = [len(word_to_index) + 1, 1]
