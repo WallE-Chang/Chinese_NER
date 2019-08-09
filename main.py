@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: wanli
 # @Date:   2019-08-08 17:32:03
-# @Last Modified by:   wanli
-# @Last Modified time: 2019-08-08 17:33:24
+# @Last Modified by:   changwanli
+# @Last Modified time: 2019-08-09 10:08:51
 import numpy as np
 import torch
 import torch.optim as optim
@@ -22,7 +22,7 @@ dp = data_preprocess(training_data, pretrained_word_to_index=None)
 model = BiLSTM_CRF(len(dp.word_to_index), len(dp.tag_to_index), padding_idx=dp.word_to_index[
                    "<pad>"], emb_dim=200, hidden_dim=50, pretrained_word_embedding=None)
 model = model.to(device)
-optimizer = optim.Adam(model.parameters(), lr=0.0001)
+optimizer = optim.Adam(model.parameters(), lr=3e-4)
 
 for epoch in range(300):
     print("=" * 100)
@@ -30,7 +30,7 @@ for epoch in range(300):
     total_loss = 0
     iteration_num = 0
     model.train()
-    for sentences, tags in batch_iter(training_data, 1024 * 512):
+    for sentences, tags in batch_iter(training_data, 1024 * 512,shuffle=True):
         X, mask = dp.to_input_idx(sentences, device)
         y = dp.to_input_label(tags, device)
         loss = model.loss(X, y, mask=mask)
