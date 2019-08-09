@@ -2,25 +2,27 @@
 # @Author: wanli
 # @Date:   2019-07-24 18:19:06
 # @Last Modified by:   changwanli
-# @Last Modified time: 2019-08-09 14:12:52
+# @Last Modified time: 2019-08-09 14:58:43
 import torch
 
 from torch import nn
 from torch.nn.utils.rnn import pack_padded_sequence
 from torch.nn.utils.rnn import pad_packed_sequence
 
+
 class SimpleLSTM(nn.Module):
 
-    def __init__(self, vocab_size, nb_labels, padding_idx=None,emb_dim=10, hidden_dim=10,pretrained_word_embedding=None):
+    def __init__(self, vocab_size, nb_labels, padding_idx=None, emb_dim=10, hidden_dim=10, pretrained_word_embedding=None):
         super().__init__()
         self.hidden_dim = hidden_dim
         if pretrained_word_embedding is not None:
-            self.emb = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_word_embedding).float())
+            self.emb = nn.Embedding.from_pretrained(
+                torch.from_numpy(pretrained_word_embedding).float())
             assert emb_dim == pretrained_word_embedding.shape[1]
         else:
-            self.emb = nn.Embedding(vocab_size, emb_dim,padding_idx =padding_idx)
+            self.emb = nn.Embedding(
+                vocab_size, emb_dim, padding_idx=padding_idx)
 
-              
         self.lstm = nn.LSTM(
             emb_dim, hidden_dim // 2, bidirectional=True, batch_first=True
         )
@@ -34,18 +36,21 @@ class SimpleLSTM(nn.Module):
             torch.randn(2, batch_size, self.hidden_dim // 2),
         )
 
-    def forward(self, batch_of_sentences,mask=None):
-        self.hidden = self.init_hidden(batch_of_sentences.shape[0]).to(batch_of_sentences.device)
-        
+    def forward(self, batch_of_sentences, mask=None):
+        self.hidden = self.init_hidden(batch_of_sentences.shape[0])
+
+        self.hidden = (self.hidden[0].to(batch_of_sentences.device), self.hidden[
+                       1].to(batch_of_sentences.device))
+
         x = self.emb(batch_of_sentences)
 
         if mask is not None:
             source_lengths = mask.sum(1)
-            x, self.hidden = self.lstm(pack_padded_sequence(x, source_lengths,batch_first=True), self.hidden)
-            x, input_sizes = pad_packed_sequence(x,batch_first=True )
+            x, self.hidden = self.lstm(pack_padded_sequence(
+                x, source_lengths, batch_first=True), self.hidden)
+            x, input_sizes = pad_packed_sequence(x, batch_first=True)
         else:
             x, self.hidden = self.lstm(x, self.hidden)
         x = self.dropout(x)
         x = self.hidden2tag(x)
         return x
-
