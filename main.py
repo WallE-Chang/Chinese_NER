@@ -2,7 +2,7 @@
 # @Author: wanli
 # @Date:   2019-08-08 17:32:03
 # @Last Modified by:   changwanli
-# @Last Modified time: 2019-08-09 15:02:23
+# @Last Modified time: 2019-08-09 15:20:44
 
 import numpy as np
 import torch
@@ -53,7 +53,7 @@ for epoch in range(300):
     total_loss = 0
     iteration_num = 0
     model.train()
-    for sentences, tags in batch_iter(training_data, 1024 * 512, shuffle=True):
+    for sentences, tags in batch_iter(training_data, 1024 * 8, shuffle=True):
         X, mask = dp.to_input_idx(sentences, device)
         y = dp.to_input_label(tags, device)
         loss = model.loss(X, y, mask=mask)
@@ -62,7 +62,7 @@ for epoch in range(300):
         optimizer.step()
         total_loss += loss.cpu().detach().numpy()
         iteration_num += 1
-    print('train loss :%.2f' % (total_loss / iteration_num))
+    print('train loss :%.4f' % (total_loss / iteration_num))
 
     # test
     model.eval()
@@ -70,7 +70,7 @@ for epoch in range(300):
     total_acc = 0
     iteration_num = 0
     with torch.no_grad():
-        for sentences, tags in batch_iter(test_data, 1024 * 512):
+        for sentences, tags in batch_iter(test_data, 1024 * 8):
             X, mask = dp.to_input_idx(sentences, device)
             y = dp.to_input_label(tags, device)
             loss = model.loss(X, y, mask=mask)
@@ -82,7 +82,7 @@ for epoch in range(300):
             total_loss += loss.cpu().detach().numpy()
             iteration_num += 1
 
-    print('test loss :%.2f' % (total_loss / iteration_num))
+    print('test loss :%.4f' % (total_loss / iteration_num))
     print('test acc :%.8f' % (total_acc / iteration_num))
 
 # In[7] test your sentence
